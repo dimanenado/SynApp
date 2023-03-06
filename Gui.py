@@ -6,7 +6,7 @@ class SynApp(customtkinter.CTk):
         super().__init__()
 
         # main window size, title and size limits
-        self.geometry('600x420')
+        self.geometry('620x440')
         self.title('SynApp')
         self.minsize(500, 300)
 
@@ -20,28 +20,28 @@ class SynApp(customtkinter.CTk):
 
         # adding left side labels for logo + text
         self.leftlabel1 = customtkinter.CTkLabel(master=self, text='SynApp', font=('Roboto', 26, 'bold'), anchor='n')
-        self.leftlabel1.grid(row=0, column=0, columnspan=1, padx=20, pady=(27, 0), sticky="nws")
+        self.leftlabel1.grid(row=0, column=0, columnspan=1, padx=24, pady=(24, 0), sticky="w")
 
         self.leftlabel2 = customtkinter.CTkLabel(master=self, text='_________\nsimple\nsynonym\nsearch',
                                                  font=('Roboto', 18), anchor='n', justify='left')
-        self.leftlabel2.grid(row=1, column=0, columnspan=1, padx=20, pady=(0, 0), sticky="nws")
+        self.leftlabel2.grid(row=1, column=0, columnspan=1, padx=24, pady=(0, 0), sticky="nw")
 
         # add search bar and bind enter to self.search()
-        self.searchbar = customtkinter.CTkEntry(master=self, height=50, font=('Roboto', 22), border_width=0,
-                                                corner_radius=5)
-        self.searchbar.grid(row=0, column=1, columnspan=3, padx=0, pady=(20, 0), sticky='new')
+        self.searchbar = customtkinter.CTkEntry(master=self, height=48, font=('Roboto', 22), border_width=0,
+                                                corner_radius=12)
+        self.searchbar.grid(row=0, column=1, columnspan=3, padx=0, pady=(24, 0), sticky='new')
         self.searchbar.bind('<Return>', lambda event: self.search())
 
         # add search button
-        self.button = customtkinter.CTkButton(master=self, text='Search', font=('Roboto', 18), width=90, height=50,
-                                              command=self.search)
-        self.button.grid(row=0, column=4, padx=(10, 20), pady=(20, 0), sticky='ewn')
+        self.button = customtkinter.CTkButton(master=self, text='Search', font=('Roboto', 18), width=90, height=48, corner_radius=12,
+                                              command=self.search, anchor='center')
+        self.button.grid(row=0, column=4, padx=(12, 24), pady=(24, 0), sticky='ewn')
 
         # add label for output
         welcome_text = 'Welcome to our synonym finder!\n\nTo get started:\n-- type a word or phrase into the search bar\n-- click the "Search" button\n\n\nHappy synonym hunting!'
         self.outputlabel = customtkinter.CTkLabel(master=self, text=welcome_text, anchor='nw', corner_radius=5,
                                                   font=('Roboto', 18), justify='left')
-        self.outputlabel.grid(row=1, column=1, columnspan=4, rowspan=3, padx=(20, 20), pady=(22, 20), sticky="nswe")
+        self.outputlabel.grid(row=1, column=1, columnspan=4, rowspan=3, padx=(0, 24), pady=(24, 24), sticky="nswe")
 
     # input check
     def is_valid_input(self, word):
