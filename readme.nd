@@ -1,0 +1,13 @@
+Synonym application project
+
+Application desired workflow:
+
+1. In the application UI, a user specifies a word (or a word combination).
+2. The user clicks a button to generate synonyms.
+3. The application displays a list of synonyms for the specified word (or the word combination).
+
+Requirements:
+
+• The application must display at least 3 most relevant synonyms (10 max).
+• The application must use any publicly available API or database to generate synonyms.
+• The application must be Windows-based or web-based (a cross-platform solution is preferable)
