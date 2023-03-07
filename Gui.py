@@ -1,12 +1,13 @@
 import customtkinter
 import requests
 
+
 class SynApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
         # main window size, title and size limits
-        self.geometry('620x440')
+        self.geometry('620x460')
         self.title('SynApp')
         self.minsize(500, 300)
 
@@ -24,7 +25,7 @@ class SynApp(customtkinter.CTk):
 
         self.leftlabel2 = customtkinter.CTkLabel(master=self, text='_________\nsimple\nsynonym\nsearch',
                                                  font=('Roboto', 18), anchor='n', justify='left')
-        self.leftlabel2.grid(row=1, column=0, columnspan=1, padx=24, pady=(0, 0), sticky="nw")
+        self.leftlabel2.grid(row=1, column=0, columnspan=1, padx=24, pady=(16, 0), sticky="nw")
 
         # add search bar and bind enter to self.search()
         self.searchbar = customtkinter.CTkEntry(master=self, height=48, font=('Roboto', 22), border_width=0,
@@ -33,15 +34,21 @@ class SynApp(customtkinter.CTk):
         self.searchbar.bind('<Return>', lambda event: self.search())
 
         # add search button
-        self.button = customtkinter.CTkButton(master=self, text='Search', font=('Roboto', 18), width=90, height=48, corner_radius=12,
-                                              command=self.search, anchor='center')
+        self.button = customtkinter.CTkButton(master=self, text='Search',
+                                              font=('Roboto', 18),
+                                              width=90, height=48,
+                                              corner_radius=12,
+                                              hover_color='#0078d7',
+                                              command=self.search)
         self.button.grid(row=0, column=4, padx=(12, 24), pady=(24, 0), sticky='ewn')
 
         # add label for output
         welcome_text = 'Welcome to our synonym finder!\n\nTo get started:\n-- type a word or phrase into the search bar\n-- click the "Search" button\n\n\nHappy synonym hunting!'
-        self.outputlabel = customtkinter.CTkLabel(master=self, text=welcome_text, anchor='nw', corner_radius=5,
-                                                  font=('Roboto', 18), justify='left')
+        self.outputlabel = customtkinter.CTkTextbox(master=self, corner_radius=5,font=('Roboto', 18),border_spacing=12,
+                                                    fg_color='#242424'
+                                                    )
         self.outputlabel.grid(row=1, column=1, columnspan=4, rowspan=3, padx=(0, 24), pady=(24, 24), sticky="nswe")
+        self.outputlabel.insert('0.0', welcome_text)
 
     # input check
     def is_valid_input(self, word):
@@ -54,16 +61,26 @@ class SynApp(customtkinter.CTk):
     def generate_syn(self, word):
         datamuse_url = 'https://api.datamuse.com/words'
         datamuse_params = {'rel_syn': word,
-                           'max': 10}
-        # if space in input change params to ml - means like for better output
+                           'max': 10,
+                           'md': 'f'}
+            #if space in input change params to ml - means like for better output
         if ' ' in word:
             datamuse_params = {'ml': word,
-                             'max': 10}
+                               'max': 5,}
+            response = requests.get(datamuse_url, params=datamuse_params)
+            # sanity check
+            if response.status_code == 200:
+                synonyms = [result['word'] for result in response.json()]
+                note = '\n\n**Found with Datamuse API'
+                return synonyms, note
         response = requests.get(datamuse_url, params = datamuse_params)
         # sanity check
         if response.status_code == 200:
-            results = response.json()
-            synonyms = [result['word'] for result in results]
+            results = sorted(response.json(), key=lambda x: float(x['tags'][0].split(':')[1]), reverse=True)
+            print (results)
+            synonyms = []
+            for item in results:
+                synonyms.append(item['word'])
             note = '\n\n**Found with Datamuse API'
             return synonyms, note   # return synonyms and a note str
 
@@ -85,7 +102,7 @@ class SynApp(customtkinter.CTk):
                         synonyms.extend(syn_list)
                         if len(synonyms) >= 10:
                             break
-                    if len(synonyms) >=10:
+                    if len(synonyms) >= 10:
                         break
             return synonyms[:10], note
         else:
@@ -96,20 +113,23 @@ class SynApp(customtkinter.CTk):
 
         try:
             if not self.is_valid_input(word):
-                raise ValueError(f'Oops,{word} looks like invalid input: \n\nlets try something different')
+                raise ValueError(f'Oops, {word} looks like invalid input: \n\nlets try something different')
             synonyms, note = self.generate_syn(word)
             if len(synonyms) < 3:
                 synonyms, note = self.generate_more(word, synonyms)
             if synonyms:
                 nld = '\n-- '  # both are workarounds for fstring backslash
                 nl = '\n'
-                self.outputlabel.configure(anchor='nw', text=f'Synonyms found for {word}:{nl}{nld}{nld.join(synonyms)}{note}', justify='left')
+                self.outputlabel.delete('0.0','20.0')
+                self.outputlabel.insert(('0.0'), f'Synonyms found for {word}:{nl}{nld}{nld.join(synonyms)}{note}')
                 self.searchbar.delete('0', '100')
             else:
-                self.outputlabel.configure(anchor='nw', text='Oops, nothing found :(\n\nPlease try something else', justify='left')
+                self.outputlabel.delete('0.0', '20.0')
+                self.outputlabel.insert(('0.0'), f'Oops, nothing found for {word} :(\n\nPlease try something else')
                 self.searchbar.delete('0', '100')
         except Exception as e:
-            self.outputlabel.configure(anchor='nw', text=e)
+            self.outputlabel.delete('0.0', '20.0')
+            self.outputlabel.insert(('0.0'), f'{e}')
             self.searchbar.delete('0', '100')
 
 if __name__ == "__main__":
