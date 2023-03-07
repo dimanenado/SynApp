@@ -11,7 +11,7 @@ class SynApp(customtkinter.CTk):
         # main window size, title and size limits
         self.geometry('620x460')
         self.title('SynApp')
-        self.minsize(500, 300)
+        self.minsize(620, 300)
 
         # default appearance
         customtkinter.set_appearance_mode('dark')
@@ -25,7 +25,7 @@ class SynApp(customtkinter.CTk):
         self.leftlabel1 = customtkinter.CTkLabel(master=self, text='SynApp', font=('Roboto', 26, 'bold'), anchor='n')
         self.leftlabel1.grid(row=0, column=0, columnspan=1, padx=24, pady=(24, 0), sticky="w")
 
-        self.leftlabel2 = customtkinter.CTkLabel(master=self, text='_________\nsimple\nsynonym\nsearch',
+        self.leftlabel2 = customtkinter.CTkLabel(master=self, text='_________\nSimple\nSynonym\nSearch',
                                                  font=('Roboto', 18), anchor='n', justify='left')
         self.leftlabel2.grid(row=1, column=0, columnspan=1, padx=24, pady=(16, 0), sticky="nw")
 
@@ -36,12 +36,7 @@ class SynApp(customtkinter.CTk):
         self.searchbar.bind('<Return>', lambda event: self.search())
 
         # add search button
-        self.button = customtkinter.CTkButton(master=self, text='Search',
-                                              font=('Roboto', 18),
-                                              width=90, height=48,
-                                              corner_radius=12,
-                                              hover_color='#0078d7',
-                                              command=self.search)
+        self.button = customtkinter.CTkButton(master=self, text='Search', font=('Roboto', 18),  width=90, height=48, corner_radius=12, hover_color='#0078d7', command=self.search)
         self.button.grid(row=0, column=4, padx=(12, 24), pady=(24, 0), sticky='ewn')
 
         # add label for output
@@ -49,7 +44,7 @@ class SynApp(customtkinter.CTk):
         self.outputlabel = customtkinter.CTkTextbox(master=self, corner_radius=5,font=('Roboto', 18),border_spacing=12,
                                                     fg_color='#242424'
                                                     )
-        self.outputlabel.grid(row=1, column=1, columnspan=4, rowspan=3, padx=(0, 24), pady=(24, 24), sticky="nswe")
+        self.outputlabel.grid(row=1, column=1, columnspan=4, rowspan=3, padx=(0, 12), pady=(24, 24), sticky="nswe")
         self.outputlabel.insert('0.0', welcome_text)
 
     # input check
@@ -65,10 +60,10 @@ class SynApp(customtkinter.CTk):
         datamuse_params = {'rel_syn': word,
                            'max': 10,
                            'md': 'f'}
-            #if space in input change params to ml - means like for better output
+            #[Optional]if space in input change params to ml - 'means like' for better output
         if ' ' in word:
             datamuse_params = {'ml': word,
-                               'max': 5,}
+                               'max': 10}
             response = requests.get(datamuse_url, params=datamuse_params)
             logging.info(f'Datamuse request URL:{response.url}')
             # sanity check
@@ -120,6 +115,7 @@ class SynApp(customtkinter.CTk):
         word = self.searchbar.get().strip()
         logging.info('_____________STARTING NEW SEARCH_____________')
         logging.info(f'user input is:{word}')
+        self.searchbar.delete('0', '100')
 
         try:
             if not self.is_valid_input(word):
@@ -127,25 +123,26 @@ class SynApp(customtkinter.CTk):
             synonyms, note = self.generate_syn(word)
             if len(synonyms) < 3:
                 synonyms, note = self.generate_more(word, synonyms)
-                logging.info(f'less than three synonyms found with Datamuse')
+                logging.warning(f'less than three synonyms found with Datamuse')
             if synonyms:
                 nld = '\n-- '  # both are workarounds for fstring backslash
                 nl = '\n'
                 self.outputlabel.delete('0.0','20.0')
                 self.outputlabel.insert(('0.0'), f'Synonyms found for {word}:{nl}{nld}{nld.join(synonyms)}{note}')
-                self.searchbar.delete('0', '100')
+
             else:
                 logging.info(f'no synonyms found for {word}')
                 self.outputlabel.delete('0.0', '20.0')
                 self.outputlabel.insert(('0.0'), f'Oops, nothing found for {word} :(\n\nPlease try something else')
-                self.searchbar.delete('0', '100')
+
         except Exception as e:
             logging.error(f'exception caught: {e}')
             self.outputlabel.delete('0.0', '20.0')
             self.outputlabel.insert(('0.0'), f'{e}')
-            self.searchbar.delete('0', '100')
 
 
+
+#create instance and start mainevent
 
 if __name__ == "__main__":
     app = SynApp()
