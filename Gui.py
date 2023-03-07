@@ -1,6 +1,8 @@
 import customtkinter
 import requests
+import logging
 
+logging.basicConfig(filename='SynApp.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 class SynApp(customtkinter.CTk):
     def __init__(self):
@@ -68,20 +70,24 @@ class SynApp(customtkinter.CTk):
             datamuse_params = {'ml': word,
                                'max': 5,}
             response = requests.get(datamuse_url, params=datamuse_params)
+            logging.info(f'Datamuse request URL:{response.url}')
             # sanity check
             if response.status_code == 200:
                 synonyms = [result['word'] for result in response.json()]
                 note = '\n\n**Found with Datamuse API'
+                logging.info(f'Datamuse sorted output is: {synonyms}')
                 return synonyms, note
         response = requests.get(datamuse_url, params = datamuse_params)
+        logging.info(f'Datamuse request URL:{response.url}')
         # sanity check
         if response.status_code == 200:
+            logging.info(f'Datamuse response: {response}')
             results = sorted(response.json(), key=lambda x: float(x['tags'][0].split(':')[1]), reverse=True)
-            print (results)
             synonyms = []
             for item in results:
                 synonyms.append(item['word'])
             note = '\n\n**Found with Datamuse API'
+            logging.info(f'Datamuse sorted output is: {synonyms}')
             return synonyms, note   # return synonyms and a note str
 
         else:
@@ -94,6 +100,7 @@ class SynApp(customtkinter.CTk):
         merriam_webster_response = requests.get(merriam_webster_url, params=merriam_webster_params)
         #sanity check
         if merriam_webster_response.status_code == 200:
+            logging.info(f'Merriam-Webster request URL:{merriam_webster_response.url}')
             merriam_webster_results = merriam_webster_response.json()
             note = '\n\n**Displaying list combined from multiple sources'
             for entry in merriam_webster_results:
@@ -104,12 +111,15 @@ class SynApp(customtkinter.CTk):
                             break
                     if len(synonyms) >= 10:
                         break
+            logging.info(f'Result output is: {synonyms}')
             return synonyms[:10], note
         else:
             raise requests.exceptions.HTTPError('Bad request Merriam Webster :(')
 
     def search(self):
         word = self.searchbar.get().strip()
+        logging.info('_____________STARTING NEW SEARCH_____________')
+        logging.info(f'user input is:{word}')
 
         try:
             if not self.is_valid_input(word):
@@ -117,6 +127,7 @@ class SynApp(customtkinter.CTk):
             synonyms, note = self.generate_syn(word)
             if len(synonyms) < 3:
                 synonyms, note = self.generate_more(word, synonyms)
+                logging.info(f'less than three synonyms found with Datamuse')
             if synonyms:
                 nld = '\n-- '  # both are workarounds for fstring backslash
                 nl = '\n'
@@ -124,13 +135,17 @@ class SynApp(customtkinter.CTk):
                 self.outputlabel.insert(('0.0'), f'Synonyms found for {word}:{nl}{nld}{nld.join(synonyms)}{note}')
                 self.searchbar.delete('0', '100')
             else:
+                logging.info(f'no synonyms found for {word}')
                 self.outputlabel.delete('0.0', '20.0')
                 self.outputlabel.insert(('0.0'), f'Oops, nothing found for {word} :(\n\nPlease try something else')
                 self.searchbar.delete('0', '100')
         except Exception as e:
+            logging.error(f'exception caught: {e}')
             self.outputlabel.delete('0.0', '20.0')
             self.outputlabel.insert(('0.0'), f'{e}')
             self.searchbar.delete('0', '100')
+
+
 
 if __name__ == "__main__":
     app = SynApp()
