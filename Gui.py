@@ -58,12 +58,14 @@ class SynApp(customtkinter.CTk):
     def generate_syn(self, word):
         datamuse_url = 'https://api.datamuse.com/words'
         datamuse_params = {'rel_syn': word,
-                           'max': 10,
-                           'md': 'f'}
-            #[Optional]if space in input change params to ml - 'means like' for better output
+                           'md': 'f',
+                           'max': 1000,
+                           'v':'enwiki'}
+        #[Optional]if space in input change params to ml - 'means like' for better output
         if ' ' in word:
             datamuse_params = {'ml': word,
-                               'max': 10}
+                               'max': 1000,
+                               'v':'enwiki'}
             response = requests.get(datamuse_url, params=datamuse_params)
             logging.info(f'Datamuse request URL:{response.url}')
             # sanity check
@@ -71,7 +73,7 @@ class SynApp(customtkinter.CTk):
                 synonyms = [result['word'] for result in response.json()]
                 note = '\n\n**Found with Datamuse API'
                 logging.info(f'Datamuse sorted output is: {synonyms}')
-                return synonyms, note
+                return synonyms[:10], note
         response = requests.get(datamuse_url, params = datamuse_params)
         logging.info(f'Datamuse request URL:{response.url}')
         # sanity check
@@ -83,7 +85,7 @@ class SynApp(customtkinter.CTk):
                 synonyms.append(item['word'])
             note = '\n\n**Found with Datamuse API'
             logging.info(f'Datamuse sorted output is: {synonyms}')
-            return synonyms, note   # return synonyms and a note str
+            return synonyms[:10], note   # return synonyms and a note str
 
         else:
             raise requests.exceptions.HTTPError('Bad request Datamuse :(')
@@ -133,7 +135,7 @@ class SynApp(customtkinter.CTk):
             else:
                 logging.info(f'no synonyms found for {word}')
                 self.outputlabel.delete('0.0', '20.0')
-                self.outputlabel.insert(('0.0'), f'Oops, nothing found for {word} :(\n\nPlease try something else')
+                self.outputlabel.insert(('0.0'), f'Oops,\nboth sources return nothing for {word} :(\n\nPlease try something else')
 
         except Exception as e:
             logging.error(f'exception caught: {e}')
